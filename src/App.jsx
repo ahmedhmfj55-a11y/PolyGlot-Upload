@@ -105,7 +105,7 @@ function App() {
 
         const release = await response.json()
         const latestVersion = (release.tag_name || '').replace(/^v/, '')
-        const currentVersion = '1.0'
+        const currentVersion = '1.0.1'
 
         const latest = latestVersion.split('.').map(Number)
         const current = currentVersion.split('.').map(Number)
