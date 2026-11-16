@@ -4,6 +4,7 @@ import {
   Home, Star, Languages, MessageCircle, Sparkles,
   Globe, Search, RotateCcw, Moon, Sun
 } from 'lucide-react'
+import { Browser } from '@capacitor/browser'
 import './App.css'
 
 const languages = [
@@ -89,6 +90,53 @@ function App() {
   const [feedback, setFeedback] = useState('')
   const [level, setLevel] = useState('beginner')
   const currentQuestions = quizLevels[level]
+
+  const [updateInfo, setUpdateInfo] = useState(null)
+
+  useEffect(() => {
+    let active = true
+
+    async function checkForUpdates() {
+      try {
+        const response = await fetch(
+          'https://api.github.com/repos/ahmedhmfj55-a11y/PolyGlot-Upload/releases/latest'
+        )
+        if (!response.ok) return
+
+        const release = await response.json()
+        const latestVersion = (release.tag_name || '').replace(/^v/, '')
+        const currentVersion = '1.0'
+
+        const latest = latestVersion.split('.').map(Number)
+        const current = currentVersion.split('.').map(Number)
+
+        let isNewer = false
+        for (let i = 0; i < Math.max(latest.length, current.length); i++) {
+          const a = latest[i] || 0
+          const b = current[i] || 0
+          if (a > b) { isNewer = true; break }
+          if (a < b) break
+        }
+
+        const apk = release.assets?.find(asset =>
+          asset.name.toLowerCase().endsWith('.apk')
+        )
+
+        if (active && isNewer && apk) {
+          setUpdateInfo({
+            version: latestVersion,
+            url: apk.browser_download_url
+          })
+        }
+      } catch (error) {
+        console.log('Update check unavailable:', error)
+      }
+    }
+
+    checkForUpdates()
+    return () => { active = false }
+  }, [])
+
 
   function enterApp(e) {
     e.preventDefault()
@@ -320,6 +368,26 @@ function App() {
           <textarea placeholder={uiLang === 'ar' ? 'اكتب رسالتك هنا...' : 'Write your message here...'} />
           <button className="primary" onClick={() => alert('سنربط المساعد الذكي لاحقاً')}>{uiLang === 'ar' ? 'إرسال' : 'Send'}</button>
         </section>}
+        {updateInfo && (
+          <div className="update-overlay">
+            <div className="update-modal">
+              <div className="update-icon">🚀</div>
+              <h2>{uiLang === 'ar' ? 'تحديث جديد متوفر!' : 'New Update Available!'}</h2>
+              <p>
+                {uiLang === 'ar'
+                  ? `الإصدار الجديد ${updateInfo.version} أصبح متاحاً. حدّث التطبيق للاستفادة من التحسينات.`
+                  : `Version ${updateInfo.version} is available. Update the app to get the latest improvements.`}
+              </p>
+              <button className="primary" onClick={() => Browser.open({ url: updateInfo.url })}>
+                {uiLang === 'ar' ? 'تحديث الآن' : 'Update Now'}
+              </button>
+              <button className="update-later" onClick={() => setUpdateInfo(null)}>
+                {uiLang === 'ar' ? 'لاحقاً' : 'Later'}
+              </button>
+            </div>
+          </div>
+        )}
+
       </main>
 
       <nav className="bottom-nav">

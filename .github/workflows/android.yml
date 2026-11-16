@@ -1,13 +1,19 @@
-name: Build PolyGlot AI APK
+name: Build and Release PolyGlot AI
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,8 +41,15 @@ jobs:
       - name: Build APK
         run: cd android && chmod +x gradlew && ./gradlew assembleDebug
 
-      - name: Upload APK
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: PolyGlot-AI-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+          generate_release_notes: true
