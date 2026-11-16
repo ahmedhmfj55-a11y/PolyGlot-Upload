@@ -1,0 +1,399 @@
+
+import { useState } from 'react'
+import {
+  BookOpen, Volume2, Trophy, ArrowRight, CheckCircle,
+  RotateCcw, Home, Star, Languages, MessageCircle,
+  Sparkles, Search, Globe, Mic, ChevronLeft
+} from 'lucide-react'
+import './App.css'
+
+const languages = [
+  { name: 'الإنجليزية', flag: '🇬🇧', level: 'الأكثر شعبية', count: '120 درساً' },
+  { name: 'الإسبانية', flag: '🇪🇸', level: 'لغة عالمية', count: '85 درساً' },
+  { name: 'الفرنسية', flag: '🇫🇷', level: 'لغة الثقافة', count: '90 درساً' },
+  { name: 'الألمانية', flag: '🇩🇪', level: 'لغة الأعمال', count: '75 درساً' },
+  { name: 'الإيطالية', flag: '🇮🇹', level: 'لغة الفن', count: '60 درساً' },
+  { name: 'اليابانية', flag: '🇯🇵', level: 'لغة مميزة', count: '70 درساً' },
+]
+
+const words = [
+  ['Hello', 'مرحباً'],
+  ['Thank you', 'شكراً لك'],
+  ['Good morning', 'صباح الخير'],
+  ['Beautiful', 'جميل'],
+  ['Friend', 'صديق'],
+]
+
+function App() {
+  const [tab, setTab] = useState('home')
+  const [language, setLanguage] = useState('الإنجليزية')
+  const [search, setSearch] = useState('')
+  const [source, setSource] = useState('العربية')
+  const [target, setTarget] = useState('الإنجليزية')
+  const [translation, setTranslation] = useState('')
+  const [chat, setChat] = useState('')
+  const [messages, setMessages] = useState([
+    { role: 'ai', text: 'مرحباً بك! أنا مساعد Polyglot AI. كيف يمكنني مساعدتك في تعلم اللغات؟' }
+  ])
+  const [xp, setXp] = useState(() => Number(localStorage.getItem('polyglotXP') || 0))
+  const [completed, setCompleted] = useState(() => JSON.parse(localStorage.getItem('polyglotCompleted') || '[]'))
+
+  const speak = (text, lang = 'en-US') => {
+    if (!window.speechSynthesis) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = lang
+    window.speechSynthesis.speak(utterance)
+  }
+
+  const chooseLanguage = name => {
+    setLanguage(name)
+    setTab('lessons')
+  }
+
+  const translate = () => {
+    if (!search.trim()) return
+    setTranslation('ميزة الترجمة الذكية ستعمل بعد ربط خدمة الذكاء الاصطناعي API.')
+  }
+
+  const sendMessage = () => {
+    if (!chat.trim()) return
+    setMessages(prev => [...prev,
+      { role: 'user', text: chat },
+      { role: 'ai', text: 'أنا جاهز لمساعدتك! سيتم تفعيل الردود الذكية عند ربط API.' }
+    ])
+    setChat('')
+  }
+
+  const completeWord = () => {
+    const next = xp + 10
+    setXp(next)
+    localStorage.setItem('polyglotXP', String(next))
+    const updated = [...completed, words[0][0]]
+    setCompleted(updated)
+    localStorage.setItem('polyglotCompleted', JSON.stringify(updated))
+  }
+
+  const nav = [
+    { id: 'home', label: 'الرئيسية', icon: Home },
+    { id: 'languages', label: 'اللغات', icon: Globe },
+    { id: 'translate', label: 'الترجمة', icon: Languages },
+    { id: 'chat', label: 'المساعد', icon: MessageCircle },
+    { id: 'profile', label: 'حسابي', icon: Star },
+  ]
+
+  return (
+    <div className="app" dir="rtl">
+      <header className="header">
+        <div className="brand">
+          <span>🌍</span>
+          <span>PolyGlot <b>AI</b></span>
+        </div>
+        <button className="avatar" onClick={() => setTab('profile')}>
+          <Trophy size={20}/>
+        </button>
+      </header>
+
+      <main>
+        {tab === 'home' && <>
+          <section className="welcome">
+            <span className="eyebrow"><Sparkles size={14}/> مستقبلك يبدأ بكلمة</span>
+            <h1>تعلّم لغة جديدة،<br/><span>وافتح العالم أمامك.</span></h1>
+            <p>رحلة ذكية لتعلّم اللغات بطريقة ممتعة وسهلة.</p>
+            <button className="primary" onClick={() => setTab('languages')}>
+              ابدأ رحلتك <ArrowRight size={18}/>
+            </button>
+            <div className="globe">🌐</div>
+          </section>
+
+          <div className="stats">
+            <div><Trophy/><b>{xp}</b><small>نقاط الخبرة</small></div>
+            <div><Star/><b>{completed.length}</b><small>إنجازات</small></div>
+            <div><Globe/><b>{languages.length}</b><small>لغات</small></div>
+          </div>
+
+          <section className="section">
+            <div className="section-title">
+              <h2>اكتشف أدواتك الذكية ✨</h2>
+            </div>
+            <div className="lesson-card">
+              <Languages size={28}/>
+              <div><b>الترجمة الذكية</b><p>ترجم الكلمات والعبارات</p></div>
+              <button onClick={() => setTab('translate')}>افتح</button>
+            </div>
+            <div className="lesson-card">
+              <MessageCircle size={28}/>
+              <div><b>محادثة AI</b><p>تدرّب على اللغات مع مساعدك</p></div>
+              <button onClick={() => setTab('chat')}>افتح</button>
+            </div>
+            <div className="lesson-card">
+              <BookOpen size={28}/>
+              <div><b>تعلم اللغات</b><p>دروس ومفردات جديدة</p></div>
+              <button onClick={() => setTab('languages')}>ابدأ</button>
+            </div>
+          </section>
+        </>}
+
+        {tab === 'languages' && <section className="section page">
+          <h1>اكتشف لغة جديدة 🌍</h1>
+          <p>اختر اللغة التي تريد تعلمها.</p>
+          <div className="language-list">
+            {languages.map(item => (
+              <button className="language-card" key={item.name} onClick={() => chooseLanguage(item.name)}>
+                <span>{item.flag}</span>
+                <b>{item.name}</b>
+                <small>{item.level}</small>
+                <small>{item.count}</small>
+              </button>
+            ))}
+          </div>
+        </section>}
+
+        {tab === 'lessons' && <section className="section page">
+          <h1>تعلم {language} 📚</h1>
+          <p>ابدأ بالكلمات الأساسية واستمع إلى نطقها.</p>
+          {words.map((word, i) => (
+            <div className="lesson-card" key={word[0]}>
+              <BookOpen/>
+              <div>
+                <b>{word[0]}</b>
+                <p>{word[1]}</p>
+              </div>
+              <button onClick={() => speak(word[0])}><Volume2 size={18}/></button>
+            </div>
+          ))}
+          <button className="primary" onClick={completeWord}>إكمال تدريب تجريبي <CheckCircle/></button>
+        </section>}
+
+        {tab === 'translate' && <section className="section page">
+          <h1>الترجمة الذكية ✨</h1>
+          <p>اكتب النص الذي تريد ترجمته.</p>
+          <div className="lesson-card" style={{display:'block'}}>
+            <label>من: </label>
+            <select value={source} onChange={e => setSource(e.target.value)}>
+              <option>العربية</option>
+              <option>الإنجليزية</option>
+              <option>الفرنسية</option>
+              <option>الإسبانية</option>
+            </select>
+            <label style={{marginRight:15}}>إلى: </label>
+            <select value={target} onChange={e => setTarget(e.target.value)}>
+              <option>الإنجليزية</option>
+              <option>العربية</option>
+              <option>الفرنسية</option>
+              <option>الإسبانية</option>
+            </select>
+            <textarea
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="اكتب النص هنا..."
+              style={{width:'100%',minHeight:120,marginTop:18,padding:14,borderRadius:12,background:'#101120',color:'white',border:'1px solid #45415e'}}
+            />
+            <button className="primary" style={{marginTop:12}} onClick={translate}>ترجم الآن <Sparkles/></button>
+            {translation && <p>{translation}</p>}
+          </div>
+        </section>}
+
+        {tab === 'chat' && <section className="section page">
+          <h1>مساعدك الذكي 🤖</h1>
+          <p>مساحة تدريب ومحادثة لتعلم اللغات.</p>
+          <div className="chatbox">
+            {messages.map((m, i) => (
+              <div className={`bubble ${m.role}`} key={i}>{m.text}</div>
+            ))}
+          </div>
+          <div className="search">
+            <input value={chat} onChange={e => setChat(e.target.value)} placeholder="اكتب رسالتك..." />
+            <button onClick={sendMessage}>إرسال</button>
+          </div>
+        </section>}
+
+        {tab === 'profile' && <section className="section page">
+          <h1>إنجازاتي 🏆</h1>
+          <div className="lesson-card"><Trophy/><div><b>{xp} نقطة خبرة</b><p>استمر في التعلم كل يوم</p></div></div>
+          <div className="lesson-card"><CheckCircle/><div><b>{completed.length} إنجازات</b><p>تقدمك محفوظ على هذا الجهاز</p></div></div>
+          <button className="primary" onClick={() => setTab('languages')}>تعلم لغة جديدة</button>
+        </section>}
+      </main>
+
+      <nav className="bottom-nav">
+        {nav.map(item => {
+          const Icon = item.icon
+          return (
+            <button key={item.id} className={tab === item.id || (tab === 'lessons' && item.id === 'languages') ? 'active' : ''} onClick={() => setTab(item.id)}>
+              <Icon size={21}/>
+              <small>{item.label}</small>
+            </button>
+          )
+        })}
+      </nav>
+    </div>
+  )
+}
+
+export default App
+import { useState } from 'react'
+import {
+  BookOpen, Volume2, Trophy, ArrowRight, CheckCircle,
+  RotateCcw, Home, Star, Languages, MessageCircle,
+  Sparkles, Search, Globe, Mic, ChevronLeft
+} from 'lucide-react'
+import './App.css'
+
+const languages = [
+  { name: 'الإنجليزية', flag: '🇬🇧', level: 'الأكثر شعبية', count: '120 درساً' },
+  { name: 'الإسبانية', flag: '🇪🇸', level: 'لغة عالمية', count: '85 درساً' },
+  { name: 'الفرنسية', flag: '🇫🇷', level: 'لغة الثقافة', count: '90 درساً' },
+  { name: 'الألمانية', flag: '🇩🇪', level: 'لغة الأعمال', count: '75 درساً' },
+  { name: 'الإيطالية', flag: '🇮🇹', level: 'لغة الفن', count: '60 درساً' },
+  { name: 'اليابانية', flag: '🇯🇵', level: 'لغة مميزة', count: '70 درساً' },
+]
+
+const words = [
+  ['Hello', 'مرحباً'],
+  ['Thank you', 'شكراً لك'],
+  ['Good morning', 'صباح الخير'],
+  ['Beautiful', 'جميل'],
+  ['Friend', 'صديق'],
+]
+
+function App() {
+  const [tab, setTab] = useState('home')
+  const [language, setLanguage] = useState('الإنجليزية')
+  const [search, setSearch] = useState('')
+  const [source, setSource] = useState('العربية')
+  const [target, setTarget] = useState('الإنجليزية')
+  const [translation, setTranslation] = useState('')
+  const [chat, setChat] = useState('')
+  const [messages, setMessages] = useState([
+    { role: 'ai', text: 'مرحباً بك! أنا مساعد Polyglot AI. كيف يمكنني مساعدتك في تعلم اللغات؟' }
+  ])
+  const [xp, setXp] = useState(() => Number(localStorage.getItem('polyglotXP') || 0))
+  const [completed, setCompleted] = useState(() => JSON.parse(localStorage.getItem('polyglotCompleted') || '[]'))
+
+  const speak = (text, lang = 'en-US') => {
+    if (!window.speechSynthesis) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = lang
+    window.speechSynthesis.speak(utterance)
+  }
+
+  const chooseLanguage = name => {
+    setLanguage(name)
+    setTab('lessons')
+  }
+
+  const translate = () => {
+    if (!search.trim()) return
+    setTranslation('ميزة الترجمة الذكية ستعمل بعد ربط خدمة الذكاء الاصطناعي API.')
+  }
+
+  const sendMessage = () => {
+    if (!chat.trim()) return
+    setMessages(prev => [...prev,
+      { role: 'user', text: chat },
+      { role: 'ai', text: 'أنا جاهز لمساعدتك! سيتم تفعيل الردود الذكية عند ربط API.' }
+    ])
+    setChat('')
+  }
+
+  const completeWord = () => {
+    const next = xp + 10
+    setXp(next)
+    localStorage.setItem('polyglotXP', String(next))
+    const updated = [...completed, words[0][0]]
+    setCompleted(updated)
+    localStorage.setItem('polyglotCompleted', JSON.stringify(updated))
+  }
+
+  const nav = [
+    { id: 'home', label: 'الرئيسية', icon: Home },
+    { id: 'languages', label: 'اللغات', icon: Globe },
+    { id: 'translate', label: 'الترجمة', icon: Languages },
+    { id: 'chat', label: 'المساعد', icon: MessageCircle },
+    { id: 'profile', label: 'حسابي', icon: Star },
+  ]
+
+  return (
+    <div className="app" dir="rtl">
+      <header className="header">
+        <div className="brand">
+          <span>🌍</span>
+          <span>PolyGlot <b>AI</b></span>
+        </div>
+        <button className="avatar" onClick={() => setTab('profile')}>
+          <Trophy size={20}/>
+        </button>
+      </header>
+
+      <main>
+        {tab === 'home' && <>
+          <section className="welcome">
+            <span className="eyebrow"><Sparkles size={14}/> مستقبلك يبدأ بكلمة</span>
+            <h1>تعلّم لغة جديدة،<br/><span>وافتح العالم أمامك.</span></h1>
+            <p>رحلة ذكية لتعلّم اللغات بطريقة ممتعة وسهلة.</p>
+            <button className="primary" onClick={() => setTab('languages')}>
+              ابدأ رحلتك <ArrowRight size={18}/>
+            </button>
+            <div className="globe">🌐</div>
+          </section>
+
+          <div className="stats">
+            <div><Trophy/><b>{xp}</b><small>نقاط الخبرة</small></div>
+            <div><Star/><b>{completed.length}</b><small>إنجازات</small></div>
+            <div><Globe/><b>{languages.length}</b><small>لغات</small></div>
+          </div>
+
+          <section className="section">
+            <div className="section-title">
+              <h2>اكتشف أدواتك الذكية ✨</h2>
+            </div>
+            <div className="lesson-card">
+              <Languages size={28}/>
+              <div><b>الترجمة الذكية</b><p>ترجم الكلمات والعبارات</p></div>
+              <button onClick={() => setTab('translate')}>افتح</button>
+            </div>
+            <div className="lesson-card">
+              <MessageCircle size={28}/>
+              <div><b>محادثة AI</b><p>تدرّب على اللغات مع مساعدك</p></div>
+              <button onClick={() => setTab('chat')}>افتح</button>
+            </div>
+            <div className="lesson-card">
+              <BookOpen size={28}/>
+              <div><b>تعلم اللغات</b><p>دروس ومفردات جديدة</p></div>
+              <button onClick={() => setTab('languages')}>ابدأ</button>
+            </div>
+          </section>
+        </>}
+
+        {tab === 'languages' && <section className="section page">
+          <h1>اكتشف لغة جديدة 🌍</h1>
+          <p>اختر اللغة التي تريد تعلمها.</p>
+          <div className="language-list">
+            {languages.map(item => (
+              <button className="language-card" key={item.name} onClick={() => chooseLanguage(item.name)}>
+                <span>{item.flag}</span>
+                <b>{item.name}</b>
+                <small>{item.level}</small>
+                <small>{item.count}</small>
+              </button>
+            ))}
+          </div>
+        </section>}
+
+        {tab === 'lessons' && <section className="section page">
+          <h1>تعلم {language} 📚</h1>
+          <p>ابدأ بالكلمات الأساسية واستمع إلى نطقها.</p>
+          {words.map((word, i) => (
+            <div className="lesson-card" key={word[0]}>
+              <BookOpen/>
+              <div>
+                <b>{word[0]}</b>
+                <p>{word[1]}</p>
+              </div>
+              <button onClick={() => speak(word[0])}><Volume2 size={18}/></button>
+            </div>
+          ))}
+          <button className="primary" onClick={completeWord}>إكمال تدريب تجريبي <CheckCircle/></button>
+        </section>}
